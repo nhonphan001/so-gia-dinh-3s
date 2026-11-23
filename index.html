@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Sổ Gia Đình 3s — Quản lý Thu Chi Gia Đình</title>
+  <title>Sổ Thu Chi 3s — Quản lý Tài chính Cá nhân</title>
   <meta name="theme-color" content="#059669" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Sổ Gia Đình 3s" />
+  <meta name="apple-mobile-web-app-title" content="Sổ Thu Chi 3s" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/svg+xml" href="/icon.svg" />
   <link rel="apple-touch-icon" href="/icon.svg" />
@@ -48,23 +48,15 @@
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center font-extrabold text-sm tracking-tight">3s</div>
         <div>
-          <h1 class="font-bold text-base leading-tight">Sổ Gia Đình 3s</h1>
+          <h1 class="font-bold text-base leading-tight">Sổ Thu Chi 3s</h1>
           <div class="flex items-center gap-1.5 text-[11px] text-emerald-100">
-            <span class="w-2 h-2 rounded-full" :class="syncStatus === 'cloud' ? 'bg-lime-300' : 'bg-amber-300'"></span>
-            <span>{{ syncStatus === 'cloud' ? 'Đồng bộ trực tuyến' : 'Lưu cục bộ trên máy' }}</span>
+            <span class="w-2 h-2 rounded-full bg-lime-300"></span>
+            <span>Ghi chú & thống kê cá nhân</span>
           </div>
         </div>
       </div>
 
-      <!-- Wallet Switcher -->
-      <div class="bg-emerald-700/70 p-1 rounded-xl flex text-xs font-semibold">
-        <button @click="activeWallet = 'shared'"
-          :class="activeWallet === 'shared' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100'"
-          class="px-2.5 py-1 rounded-lg transition-all">Quỹ Chung</button>
-        <button @click="activeWallet = 'private'"
-          :class="activeWallet === 'private' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-100'"
-          class="px-2.5 py-1 rounded-lg transition-all">Ví Riêng</button>
-      </div>
+      <span class="bg-white/15 px-2.5 py-1 rounded-xl text-xs font-bold">Tháng {{ currentMonthLabel }}</span>
     </header>
 
     <!-- Main Scrollable Content -->
@@ -72,11 +64,10 @@
       <!-- TAB 1: HOME -->
       <section v-if="activeTab === 'home'" class="p-4 space-y-4">
         <!-- Hero Financial Card -->
-        <div class="rounded-2xl p-4 text-white shadow-lg"
-          :class="activeWallet === 'shared' ? 'bg-gradient-to-br from-emerald-600 to-teal-700' : 'bg-gradient-to-br from-slate-800 to-slate-900'">
+        <div class="rounded-2xl p-4 text-white shadow-lg bg-gradient-to-br from-emerald-600 to-teal-700">
           <div class="flex items-center justify-between text-xs text-white/80 mb-1">
-            <span>{{ activeWallet === 'shared' ? 'Khả dụng thực tế (Quỹ Gia Đình)' : 'Số dư Ví Cá Nhân (Riêng tư)' }}</span>
-            <span class="bg-white/15 px-2 py-0.5 rounded-full font-medium">Tháng {{ currentMonthLabel }}</span>
+            <span>Số dư khả dụng thực tế</span>
+            <span class="bg-white/15 px-2 py-0.5 rounded-full font-medium">Tiết kiệm: {{ formatShortVND(monthlySavingsGoal) }}</span>
           </div>
           <div class="text-3xl font-extrabold tracking-tight my-1">{{ formatVND(realAvailableBalance) }}</div>
 
@@ -87,9 +78,9 @@
               <div class="text-[10px] text-white/65">Còn {{ remainingDays }} ngày trong tháng</div>
             </div>
             <div class="bg-white/10 rounded-xl p-2.5">
-              <div class="text-[11px] text-white/75">Đã chi biến đổi</div>
-              <div class="text-base font-bold text-rose-200">{{ formatVND(totalVariableExpense) }}</div>
-              <div class="text-[10px] text-white/65">Cố định: {{ formatVND(totalFixedExpense) }}</div>
+              <div class="text-[11px] text-white/75">Đã chi trong tháng</div>
+              <div class="text-base font-bold text-rose-200">{{ formatVND(totalMonthExpenseAll) }}</div>
+              <div class="text-[10px] text-white/65">Cố định: {{ formatShortVND(totalFixedExpense) }}</div>
             </div>
           </div>
         </div>
@@ -126,7 +117,7 @@
                 </div>
               </div>
             </button>
-            <button @click="openPresetManager(true)"
+            <button @click="openPresetManager()"
               class="shrink-0 bg-emerald-50/70 border border-dashed border-emerald-300 hover:bg-emerald-50 active:scale-95 transition-all rounded-xl px-3 py-2 flex items-center gap-1.5 text-emerald-700 text-xs font-bold">
               <span class="text-base leading-none">+</span>
               <span>Thêm nút</span>
@@ -138,13 +129,13 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Giao dịch gần đây</h2>
-            <button @click="activeTab = 'report'" class="text-xs font-semibold text-emerald-600">Xem báo cáo →</button>
+            <button @click="activeTab = 'report'" class="text-xs font-semibold text-emerald-600">Xem thống kê →</button>
           </div>
-          <div v-if="filteredTransactions.length === 0" class="bg-white rounded-2xl p-6 text-center text-slate-400 text-sm border border-slate-100">
-            Chưa có giao dịch nào trong ví này. Bấm nút <b>+</b> để ghi chép trong 3 giây!
+          <div v-if="transactions.length === 0" class="bg-white rounded-2xl p-6 text-center text-slate-400 text-sm border border-slate-100">
+            Chưa có giao dịch nào. Bấm nút <b>+</b> ở giữa để ghi chép trong 3 giây!
           </div>
           <div v-else class="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 shadow-sm">
-            <div v-for="tx in filteredTransactions.slice(0, 12)" :key="tx.id"
+            <div v-for="tx in transactions.slice(0, 15)" :key="tx.id"
               class="p-3 flex items-center justify-between gap-3">
               <div class="flex items-center gap-3 min-w-0">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
@@ -154,8 +145,6 @@
                 <div class="min-w-0">
                   <div class="text-sm font-bold text-slate-800 truncate">{{ tx.note || tx.category }}</div>
                   <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                    <span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">{{ tx.member }}</span>
-                    <span>•</span>
                     <span>{{ tx.category }}</span>
                     <span>•</span>
                     <span>{{ formatDateShort(tx.date) }}</span>
@@ -210,6 +199,9 @@
         <!-- Fixed Items Checklist -->
         <div class="space-y-2.5">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Danh sách định kỳ trong tháng</h3>
+          <div v-if="sortedFixedItems.length === 0" class="bg-white rounded-2xl p-5 text-center text-slate-400 text-xs border border-slate-100">
+            Chưa có khoản thu chi cố định nào. Bấm <b>+ Thêm lịch</b> để tạo.
+          </div>
           <div v-for="item in sortedFixedItems" :key="item.id"
             class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
@@ -247,12 +239,24 @@
       <section v-if="activeTab === 'report'" class="p-4 space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-extrabold text-slate-800">Báo cáo & Hạn mức</h2>
-            <p class="text-xs text-slate-500">{{ activeWallet === 'shared' ? 'Quỹ Gia Đình' : 'Ví Cá Nhân' }} • Tháng {{ currentMonthLabel }}</p>
+            <h2 class="text-lg font-extrabold text-slate-800">Thống kê & Hạn mức</h2>
+            <p class="text-xs text-slate-500">Chi tiêu cá nhân • Tháng {{ currentMonthLabel }}</p>
           </div>
           <button @click="exportCSV" class="bg-slate-800 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm active:scale-95">
             ⬇ Xuất CSV
           </button>
+        </div>
+
+        <!-- Quick Summary Row -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-400">Tổng Thu dự kiến + phát sinh</div>
+            <div class="text-base font-extrabold text-emerald-600 mt-0.5">+{{ formatVND(totalFixedIncome + totalVariableIncome) }}</div>
+          </div>
+          <div class="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+            <div class="text-[11px] font-semibold text-slate-400">Tổng Chi đã ghi nhận</div>
+            <div class="text-base font-extrabold text-rose-600 mt-0.5">-{{ formatVND(totalMonthExpenseAll) }}</div>
+          </div>
         </div>
 
         <!-- SVG Donut Chart -->
@@ -303,25 +307,11 @@
             </div>
           </div>
         </div>
-
-        <!-- Family Member Breakdown -->
-        <div v-if="activeWallet === 'shared'" class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2.5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Chi tiêu Quỹ Chung theo thành viên</h3>
-          <div v-for="m in memberBreakdown" :key="m.name" class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                {{ m.name.charAt(0).toUpperCase() }}
-              </div>
-              <span class="font-semibold text-slate-700">{{ m.name }}</span>
-            </div>
-            <span class="font-bold text-slate-900">{{ formatVND(m.spent) }}</span>
-          </div>
-        </div>
       </section>
 
-      <!-- TAB 4: FAMILY & SETTINGS -->
-      <section v-if="activeTab === 'family'" class="p-4 space-y-4">
-        <h2 class="text-lg font-extrabold text-slate-800">Gia đình & Cài đặt</h2>
+      <!-- TAB 4: SETTINGS -->
+      <section v-if="activeTab === 'settings'" class="p-4 space-y-4">
+        <h2 class="text-lg font-extrabold text-slate-800">Cài đặt cá nhân</h2>
 
         <!-- Quick Presets & Categories Customization -->
         <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2.5">
@@ -334,41 +324,7 @@
               <span>🏷️</span><span>Danh mục Thu/Chi</span>
             </button>
           </div>
-          <p class="text-[11px] text-slate-500">Thêm, sửa, xóa nút 1 chạm và phân loại theo đúng thói quen chi tiêu nhà bạn (tự động đồng bộ giữa vợ & chồng).</p>
-        </div>
-
-        <!-- Member Profile -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Hồ sơ thành viên trên máy này</h3>
-          <div class="flex gap-2">
-            <button v-for="role in ['Chồng', 'Vợ', 'Con', 'Khác']" :key="role" @click="currentMember = role; saveLocalMeta()"
-              :class="currentMember === role ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 text-slate-700 border-slate-200'"
-              class="flex-1 py-2 rounded-xl text-xs font-bold border transition-all">
-              {{ role }}
-            </button>
-          </div>
-          <div class="text-[11px] text-slate-500">Mọi giao dịch nhập từ điện thoại này sẽ tự động gắn thẻ <b>{{ currentMember }}</b>.</div>
-        </div>
-
-        <!-- Family Workspace Code -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Mã Gia Đình (Đồng bộ Quỹ Chung)</h3>
-            <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold"
-              :class="syncStatus === 'cloud' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-              {{ syncStatus === 'cloud' ? 'Đã kết nối Firebase' : 'Chế độ Offline' }}
-            </span>
-          </div>
-          <div class="flex gap-2">
-            <input v-model="familyIdInput" type="text" placeholder="VD: GIADINH-NHON-2026"
-              class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold uppercase text-slate-800 focus:outline-none focus:border-emerald-500" />
-            <button @click="applyFamilyId" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold active:scale-95">
-              Áp dụng
-            </button>
-          </div>
-          <p class="text-[11px] text-slate-500 leading-relaxed">
-            Nhập cùng một <b>Mã Gia Đình</b> trên máy của vợ và chồng để đồng bộ thời gian thực Quỹ Chung. Ví Cá Nhân luôn giữ riêng trên từng máy.
-          </p>
+          <p class="text-[11px] text-slate-500">Thêm, sửa, xóa nút 1 chạm và nhóm phân loại theo đúng thói quen chi tiêu hàng ngày của bạn.</p>
         </div>
 
         <!-- Monthly Savings Target -->
@@ -379,7 +335,22 @@
               class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:border-emerald-500" />
             <span class="text-xs font-bold text-slate-500">VNĐ</span>
           </div>
-          <p class="text-[11px] text-slate-500">Khoản này sẽ được tự động trừ khỏi "Số dư khả dụng thực tế" ngay từ đầu tháng.</p>
+          <p class="text-[11px] text-slate-500">Khoản này được tự động trừ trước khỏi "Số dư khả dụng thực tế" để giúp bạn giữ kỷ luật tiết kiệm.</p>
+        </div>
+
+        <!-- Local Backup & Restore -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-2.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Sao lưu & Khôi phục trên máy</h3>
+          <p class="text-[11px] text-slate-500">Toàn bộ dữ liệu được lưu riêng tư ngay trên thiết bị này. Bạn có thể tải file sao lưu khi đổi điện thoại.</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button @click="exportBackupJSON" class="py-2.5 px-3 rounded-xl bg-slate-800 text-white text-xs font-bold active:scale-95">
+              ⬇ Sao lưu (.json)
+            </button>
+            <label class="py-2.5 px-3 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold text-center cursor-pointer active:scale-95">
+              ⬆ Khôi phục
+              <input type="file" accept=".json,application/json" @change="importBackupJSON" class="hidden" />
+            </label>
+          </div>
         </div>
 
         <!-- Utilities -->
@@ -416,12 +387,12 @@
       <button @click="activeTab = 'report'" class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl"
         :class="activeTab === 'report' ? 'text-emerald-600 font-bold' : 'text-slate-400'">
         <span class="text-lg leading-none">📊</span>
-        <span class="text-[10px]">Báo cáo</span>
+        <span class="text-[10px]">Thống kê</span>
       </button>
-      <button @click="activeTab = 'family'" class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl"
-        :class="activeTab === 'family' ? 'text-emerald-600 font-bold' : 'text-slate-400'">
-        <span class="text-lg leading-none">👨‍👩‍👧</span>
-        <span class="text-[10px]">Gia đình</span>
+      <button @click="activeTab = 'settings'" class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl"
+        :class="activeTab === 'settings' ? 'text-emerald-600 font-bold' : 'text-slate-400'">
+        <span class="text-lg leading-none">⚙️</span>
+        <span class="text-[10px]">Cài đặt</span>
       </button>
     </nav>
 
@@ -441,19 +412,12 @@
           <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
             <button @click="switchEntryType('expense')"
               :class="entryModal.type === 'expense' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-600'"
-              class="px-3.5 py-1.5 rounded-lg">Khoản Chi</button>
+              class="px-4 py-1.5 rounded-lg">Khoản Chi</button>
             <button @click="switchEntryType('income')"
               :class="entryModal.type === 'income' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'"
-              class="px-3.5 py-1.5 rounded-lg">Khoản Thu</button>
+              class="px-4 py-1.5 rounded-lg">Khoản Thu</button>
           </div>
-          <div class="flex items-center gap-2">
-            <button @click="entryModal.wallet = entryModal.wallet === 'shared' ? 'private' : 'shared'"
-              class="text-xs font-bold px-2.5 py-1.5 rounded-xl border"
-              :class="entryModal.wallet === 'shared' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-300 text-slate-700'">
-              {{ entryModal.wallet === 'shared' ? '👨‍👩‍👧 Quỹ Chung' : '🔒 Ví Riêng' }}
-            </button>
-            <button @click="entryModal.open = false" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold">✕</button>
-          </div>
+          <button @click="entryModal.open = false" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold">✕</button>
         </div>
 
         <!-- Amount Input -->
@@ -494,7 +458,7 @@
             <button @click="openCategoryManager(entryModal.type)" class="text-[11px] font-bold text-emerald-600">⚙️ Sửa danh mục</button>
           </div>
           <div class="grid grid-cols-4 gap-2">
-            <button v-for="cat in activeCategories" :key="cat.id || cat.name" @click="entryModal.category = cat.name"
+            <button v-for="cat in activeCategories" :key="cat.name" @click="entryModal.category = cat.name"
               :class="entryModal.category === cat.name ? 'bg-emerald-50 border-emerald-500 text-emerald-800 ring-1 ring-emerald-500' : 'bg-white border-slate-200 text-slate-600'"
               class="p-2 rounded-xl border flex flex-col items-center gap-1 transition-all">
               <span class="text-xl leading-none">{{ cat.icon }}</span>
@@ -527,7 +491,7 @@
           <button @click="fixedModal.type = 'income'" :class="fixedModal.type === 'income' ? 'bg-emerald-600 text-white' : 'text-slate-600'" class="flex-1 py-2 rounded-lg">Thu nhập định kỳ</button>
           <button @click="fixedModal.type = 'expense'" :class="fixedModal.type === 'expense' ? 'bg-rose-500 text-white' : 'text-slate-600'" class="flex-1 py-2 rounded-lg">Chi phí cố định</button>
         </div>
-        <input v-model="fixedModal.name" type="text" placeholder="Tên khoản (VD: Lương chồng, Tiền điện, Học phí...)"
+        <input v-model="fixedModal.name" type="text" placeholder="Tên khoản (VD: Lương, Hoa hồng, Tiền nhà, Điện nước...)"
           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -565,7 +529,7 @@
       </div>
     </div>
 
-    <!-- MODAL 4: QUICK PRESETS MANAGER (THÊM / SỬA / XÓA NÚT THU CHI NHANH 1 CHẠM) -->
+    <!-- MODAL 4: QUICK PRESETS MANAGER -->
     <div v-if="presetModal.open" class="fixed inset-0 bg-slate-900/50 z-50 flex items-end sm:items-center justify-center">
       <div class="bg-white w-full max-w-[430px] rounded-t-3xl sm:rounded-3xl p-4 space-y-3.5 max-h-[92dvh] overflow-y-auto">
         <div class="flex items-center justify-between">
@@ -595,7 +559,7 @@
           <div class="flex gap-2">
             <input v-model="presetModal.icon" type="text" maxlength="4" placeholder="☕"
               class="w-14 text-center text-xl bg-white border border-slate-200 rounded-xl py-2 focus:outline-none focus:border-emerald-500" />
-            <input v-model="presetModal.label" type="text" placeholder="Tên nút (VD: Cà phê, Bán hàng, Đổ xăng...)"
+            <input v-model="presetModal.label" type="text" placeholder="Tên nút (VD: Cà phê, Đổ xăng, Bán hàng...)"
               class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
           </div>
 
@@ -658,7 +622,7 @@
       </div>
     </div>
 
-    <!-- MODAL 5: CATEGORY MANAGER (THÊM / SỬA / XÓA DANH MỤC THU CHI) -->
+    <!-- MODAL 5: CATEGORY MANAGER -->
     <div v-if="categoryModal.open" class="fixed inset-0 bg-slate-900/50 z-50 flex items-end sm:items-center justify-center">
       <div class="bg-white w-full max-w-[430px] rounded-t-3xl sm:rounded-3xl p-4 space-y-3.5 max-h-[92dvh] overflow-y-auto">
         <div class="flex items-center justify-between">
@@ -702,14 +666,12 @@
             </button>
           </div>
 
-          <!-- Color & Monthly Limit -->
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5">
-              <button v-for="col in colorPalette" :key="col" @click="categoryModal.color = col"
-                class="w-6 h-6 rounded-full border-2 transition-transform"
-                :style="{ background: col }"
-                :class="categoryModal.color === col ? 'border-slate-900 scale-110' : 'border-white'"></button>
-            </div>
+          <!-- Color -->
+          <div class="flex items-center gap-1.5">
+            <button v-for="col in colorPalette" :key="col" @click="categoryModal.color = col"
+              class="w-6 h-6 rounded-full border-2 transition-transform"
+              :style="{ background: col }"
+              :class="categoryModal.color === col ? 'border-slate-900 scale-110' : 'border-white'"></button>
           </div>
 
           <div v-if="categoryModal.type === 'expense'">
@@ -751,36 +713,20 @@
     </div>
   </div>
 
-  <!-- Firebase SDK (Modular via CDN) + Main Vue App -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    // =========================================================================
-    // DÁN CẤU HÌNH FIREBASE CỦA BẠN VÀO ĐÂY ĐỂ BẬT ĐỒNG BỘ GIA ĐÌNH TRỰC TUYẾN
-    // (Nếu để trống apiKey, ứng dụng vẫn chạy đầy đủ bằng bộ nhớ trên máy)
-    // =========================================================================
-    const FIREBASE_CONFIG = {
-      apiKey: "AIzaSyA0ckoW6mjKEemn3EMzN-SJaEZXXaZUzqE",
-	  authDomain: "so-gia-dinh-3s.firebaseapp.com",
-	  projectId: "so-gia-dinh-3s",
-	  storageBucket: "so-gia-dinh-3s.firebasestorage.app",
-	  messagingSenderId: "561522906264",
-	  appId: "1:561522906264:web:44a1deb6a047deff472ced"
-    };
-
+  <script>
     const { createApp, ref, computed, onMounted } = Vue;
 
+    const STORAGE_KEY = 'stc3s_personal_data_v1';
+
     const DEFAULT_EXPENSE_CATEGORIES = [
-      { name: 'Ăn uống', icon: '🍲', color: '#10b981', limit: 6000000 },
-      { name: 'Hóa đơn', icon: '⚡', color: '#f59e0b', limit: 3500000 },
-      { name: 'Con cái', icon: '🎒', color: '#3b82f6', limit: 4000000 },
+      { name: 'Ăn uống', icon: '🍲', color: '#10b981', limit: 4000000 },
+      { name: 'Hóa đơn', icon: '⚡', color: '#f59e0b', limit: 2500000 },
       { name: 'Đi lại', icon: '⛽', color: '#8b5cf6', limit: 1500000 },
-      { name: 'Hiếu hỉ', icon: '🧧', color: '#ec4899', limit: 2000000 },
-      { name: 'Y tế', icon: '💊', color: '#ef4444', limit: 1500000 },
+      { name: 'Thể thao', icon: '🏃', color: '#3b82f6', limit: 1500000 },
+      { name: 'Hiếu hỉ', icon: '🧧', color: '#ec4899', limit: 1500000 },
+      { name: 'Y tế', icon: '💊', color: '#ef4444', limit: 1000000 },
       { name: 'Mua sắm', icon: '🛍️', color: '#06b6d4', limit: 2000000 },
-      { name: 'Khác', icon: '📦', color: '#64748b', limit: 1500000 }
+      { name: 'Khác', icon: '📦', color: '#64748b', limit: 1000000 }
     ];
 
     const DEFAULT_INCOME_CATEGORIES = [
@@ -793,15 +739,15 @@
     const DEFAULT_PRESETS = [
       { id: 'p1', type: 'expense', label: 'Cà phê sáng', icon: '☕', amount: 25000, category: 'Ăn uống' },
       { id: 'p2', type: 'expense', label: 'Đổ xăng', icon: '⛽', amount: 70000, category: 'Đi lại' },
-      { id: 'p3', type: 'expense', label: 'Đi chợ', icon: '🥬', amount: 200000, category: 'Ăn uống' },
+      { id: 'p3', type: 'expense', label: 'Ăn trưa', icon: '🍱', amount: 45000, category: 'Ăn uống' },
       { id: 'p4', type: 'expense', label: 'Gửi xe', icon: '🅿️', amount: 5000, category: 'Đi lại' },
-      { id: 'p5', type: 'expense', label: 'Ăn trưa', icon: '🍱', amount: 45000, category: 'Ăn uống' }
+      { id: 'p5', type: 'expense', label: 'Thể thao', icon: '🎾', amount: 100000, category: 'Thể thao' }
     ];
 
     const EMOJI_PALETTE = [
       '☕', '🍲', '🥬', '🍱', '⛽', '🅿️', '⚡', '🎒', '🧧', '💊',
       '🛍️', '🏠', '🚗', '🏋️', '🎾', '🏃', '🎁', '📱', '💼', '🎯',
-      '🏪', '💰', '💵', '📈', '👶', '🐾', '✈️', '📦'
+      '🏪', '💰', '💵', '📈', '✈️', '📦'
     ];
 
     const COLOR_PALETTE = [
@@ -816,22 +762,19 @@
     function createDemoState() {
       const today = new Date().toISOString().slice(0, 10);
       return {
-        monthlySavingsGoal: 5000000,
+        monthlySavingsGoal: 3000000,
         expenseCategories: cloneDefaults(DEFAULT_EXPENSE_CATEGORIES),
         incomeCategories: cloneDefaults(DEFAULT_INCOME_CATEGORIES),
         quickPresets: cloneDefaults(DEFAULT_PRESETS),
         fixedItems: [
-          { id: 'f1', type: 'income', name: 'Lương Chồng', amount: 18000000, dayOfMonth: 5, isVariable: false, confirmedMonths: [] },
-          { id: 'f2', type: 'income', name: 'Lương Vợ', amount: 14000000, dayOfMonth: 5, isVariable: false, confirmedMonths: [] },
-          { id: 'f3', type: 'income', name: 'Hoa hồng kinh doanh', amount: 4000000, dayOfMonth: 15, isVariable: true, confirmedMonths: [] },
-          { id: 'f4', type: 'expense', name: 'Tiền nhà / Trả góp', amount: 6000000, dayOfMonth: 1, isVariable: false, confirmedMonths: [] },
-          { id: 'f5', type: 'expense', name: 'Điện, Nước, Internet', amount: 1800000, dayOfMonth: 10, isVariable: true, confirmedMonths: [] },
-          { id: 'f6', type: 'expense', name: 'Học phí con', amount: 3200000, dayOfMonth: 5, isVariable: false, confirmedMonths: [] }
+          { id: 'f1', type: 'income', name: 'Thu nhập chính hàng tháng', amount: 20000000, dayOfMonth: 5, isVariable: false, confirmedMonths: [] },
+          { id: 'f2', type: 'income', name: 'Hoa hồng / Thưởng thêm', amount: 3000000, dayOfMonth: 15, isVariable: true, confirmedMonths: [] },
+          { id: 'f3', type: 'expense', name: 'Chi phí nhà ở / Trả góp', amount: 4000000, dayOfMonth: 1, isVariable: false, confirmedMonths: [] },
+          { id: 'f4', type: 'expense', name: 'Điện, Nước, Internet, 4G', amount: 1200000, dayOfMonth: 10, isVariable: true, confirmedMonths: [] }
         ],
         transactions: [
-          { id: 't1', type: 'expense', wallet: 'shared', amount: 250000, category: 'Ăn uống', note: 'Đi chợ thịt cá rau củ', member: 'Vợ', date: today },
-          { id: 't2', type: 'expense', wallet: 'shared', amount: 70000, category: 'Đi lại', note: 'Đổ xăng xe máy', member: 'Chồng', date: today },
-          { id: 't3', type: 'expense', wallet: 'private', amount: 35000, category: 'Ăn uống', note: 'Cà phê với bạn', member: 'Chồng', date: today }
+          { id: 't1', type: 'expense', amount: 25000, category: 'Ăn uống', note: 'Cà phê sáng', date: today },
+          { id: 't2', type: 'expense', amount: 70000, category: 'Đi lại', note: 'Đổ xăng xe', date: today }
         ]
       };
     }
@@ -846,15 +789,9 @@
         const remainingDays = Math.max(1, daysInMonth - todayDay + 1);
 
         const activeTab = ref('home');
-        const activeWallet = ref('shared');
-        const currentMember = ref(localStorage.getItem('sgd3s_member') || 'Chồng');
-        const familyId = ref(localStorage.getItem('sgd3s_familyId') || 'GIADINH-3S');
-        const familyIdInput = ref(familyId.value);
-        const syncStatus = ref('local');
-
         const transactions = ref([]);
         const fixedItems = ref([]);
-        const monthlySavingsGoal = ref(5000000);
+        const monthlySavingsGoal = ref(3000000);
         const expenseCategories = ref(cloneDefaults(DEFAULT_EXPENSE_CATEGORIES));
         const incomeCategories = ref(cloneDefaults(DEFAULT_INCOME_CATEGORIES));
         const quickPresets = ref(cloneDefaults(DEFAULT_PRESETS));
@@ -866,7 +803,7 @@
         let toastTimer = null;
 
         const entryModal = ref({
-          open: false, type: 'expense', wallet: 'shared',
+          open: false, type: 'expense',
           rawAmount: '', category: 'Ăn uống', note: ''
         });
 
@@ -888,9 +825,6 @@
           name: '', icon: '🏷️', color: '#10b981', limit: 2000000
         });
 
-        let db = null;
-        let unsubCloud = null;
-
         const showToast = (message, undoId = null) => {
           toast.value = { visible: true, message, undoId };
           if (toastTimer) clearTimeout(toastTimer);
@@ -898,11 +832,11 @@
         };
 
         const loadLocalData = () => {
-          const saved = localStorage.getItem('sgd3s_data_' + familyId.value);
+          const saved = localStorage.getItem(STORAGE_KEY);
           const data = saved ? JSON.parse(saved) : createDemoState();
           transactions.value = data.transactions || [];
           fixedItems.value = data.fixedItems || [];
-          monthlySavingsGoal.value = data.monthlySavingsGoal ?? 5000000;
+          monthlySavingsGoal.value = data.monthlySavingsGoal ?? 3000000;
           expenseCategories.value = Array.isArray(data.expenseCategories) && data.expenseCategories.length
             ? data.expenseCategories : cloneDefaults(DEFAULT_EXPENSE_CATEGORIES);
           incomeCategories.value = Array.isArray(data.incomeCategories) && data.incomeCategories.length
@@ -912,12 +846,7 @@
             : cloneDefaults(DEFAULT_PRESETS);
         };
 
-        const saveLocalMeta = () => {
-          localStorage.setItem('sgd3s_member', currentMember.value);
-          localStorage.setItem('sgd3s_familyId', familyId.value);
-        };
-
-        const saveAllData = async () => {
+        const saveAllData = () => {
           const payload = {
             monthlySavingsGoal: monthlySavingsGoal.value,
             expenseCategories: expenseCategories.value,
@@ -927,110 +856,38 @@
             transactions: transactions.value,
             updatedAt: Date.now()
           };
-          localStorage.setItem('sgd3s_data_' + familyId.value, JSON.stringify(payload));
-
-          if (db && syncStatus.value === 'cloud') {
-            try {
-              const sharedOnly = {
-                monthlySavingsGoal: monthlySavingsGoal.value,
-                expenseCategories: expenseCategories.value,
-                incomeCategories: incomeCategories.value,
-                quickPresets: quickPresets.value,
-                fixedItems: fixedItems.value,
-                transactions: transactions.value.filter(t => t.wallet === 'shared'),
-                updatedAt: Date.now()
-              };
-              await setDoc(doc(db, 'families', familyId.value), sharedOnly, { merge: true });
-            } catch (err) {
-              console.error('Lỗi đồng bộ Firebase:', err);
-            }
-          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
         };
 
-        const connectCloudWorkspace = () => {
-          if (!db) return;
-          if (unsubCloud) unsubCloud();
-          const refDoc = doc(db, 'families', familyId.value);
-          unsubCloud = onSnapshot(refDoc, (snap) => {
-            if (snap.exists()) {
-              const cloud = snap.data();
-              const privateTxs = transactions.value.filter(t => t.wallet === 'private');
-              transactions.value = [...(cloud.transactions || []), ...privateTxs].sort((a, b) => (b.id > a.id ? 1 : -1));
-              if (cloud.fixedItems) fixedItems.value = cloud.fixedItems;
-              if (cloud.monthlySavingsGoal !== undefined) monthlySavingsGoal.value = cloud.monthlySavingsGoal;
-              if (Array.isArray(cloud.expenseCategories) && cloud.expenseCategories.length) expenseCategories.value = cloud.expenseCategories;
-              if (Array.isArray(cloud.incomeCategories) && cloud.incomeCategories.length) incomeCategories.value = cloud.incomeCategories;
-              if (Array.isArray(cloud.quickPresets)) quickPresets.value = cloud.quickPresets.map(p => ({ type: 'expense', ...p }));
-            } else {
-              saveAllData();
-            }
-          });
-        };
-
-        onMounted(async () => {
+        onMounted(() => {
           loadLocalData();
-          if (FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId) {
-            try {
-              const app = initializeApp(FIREBASE_CONFIG);
-              const auth = getAuth(app);
-              await signInAnonymously(auth);
-              db = getFirestore(app);
-              syncStatus.value = 'cloud';
-              connectCloudWorkspace();
-            } catch (e) {
-              console.warn('Chuyển sang chế độ cục bộ:', e);
-              syncStatus.value = 'local';
-            }
-          }
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js').catch(() => {});
           }
         });
 
-        const applyFamilyId = () => {
-          const clean = familyIdInput.value.trim().toUpperCase().replace(/[^A-Z0-9-_]/g, '');
-          if (!clean) return;
-          familyId.value = clean;
-          familyIdInput.value = clean;
-          saveLocalMeta();
-          loadLocalData();
-          if (syncStatus.value === 'cloud') connectCloudWorkspace();
-          showToast(`Đã chuyển sang Mã Gia Đình: ${clean}`);
-        };
-
         // Computations
-        const filteredTransactions = computed(() =>
-          transactions.value.filter(t => t.wallet === activeWallet.value)
-        );
-
         const totalFixedIncome = computed(() =>
-          activeWallet.value === 'shared'
-            ? fixedItems.value.filter(f => f.type === 'income').reduce((s, i) => s + Number(i.amount || 0), 0)
-            : 0
+          fixedItems.value.filter(f => f.type === 'income').reduce((s, i) => s + Number(i.amount || 0), 0)
         );
 
         const totalFixedExpense = computed(() =>
-          activeWallet.value === 'shared'
-            ? fixedItems.value.filter(f => f.type === 'expense').reduce((s, i) => s + Number(i.amount || 0), 0)
-            : 0
+          fixedItems.value.filter(f => f.type === 'expense').reduce((s, i) => s + Number(i.amount || 0), 0)
         );
 
         const totalVariableIncome = computed(() =>
-          filteredTransactions.value.filter(t => t.type === 'income' && !t.isFixedConfirmed).reduce((s, t) => s + t.amount, 0)
+          transactions.value.filter(t => t.type === 'income' && !t.isFixedConfirmed).reduce((s, t) => s + t.amount, 0)
         );
 
         const totalVariableExpense = computed(() =>
-          filteredTransactions.value.filter(t => t.type === 'expense' && !t.isFixedConfirmed).reduce((s, t) => s + t.amount, 0)
+          transactions.value.filter(t => t.type === 'expense' && !t.isFixedConfirmed).reduce((s, t) => s + t.amount, 0)
         );
 
         const totalMonthExpenseAll = computed(() =>
-          filteredTransactions.value.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+          transactions.value.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
         );
 
         const realAvailableBalance = computed(() => {
-          if (activeWallet.value === 'private') {
-            return totalVariableIncome.value - totalVariableExpense.value;
-          }
           return (totalFixedIncome.value + totalVariableIncome.value) - totalFixedExpense.value - monthlySavingsGoal.value - totalVariableExpense.value;
         });
 
@@ -1071,7 +928,7 @@
 
         const budgetProgress = computed(() => {
           return expenseCategories.value.map(cat => {
-            const spent = filteredTransactions.value
+            const spent = transactions.value
               .filter(t => t.type === 'expense' && t.category === cat.name)
               .reduce((s, t) => s + t.amount, 0);
             const limit = Number(cat.limit || 0);
@@ -1082,7 +939,7 @@
         const categoryBreakdown = computed(() => {
           const total = totalMonthExpenseAll.value || 1;
           return expenseCategories.value.map(cat => {
-            const spent = filteredTransactions.value
+            const spent = transactions.value
               .filter(t => t.type === 'expense' && t.category === cat.name)
               .reduce((s, t) => s + t.amount, 0);
             return { name: cat.name, color: cat.color || '#10b981', spent, percent: Math.round((spent / total) * 100) };
@@ -1097,14 +954,6 @@
             offset += dash;
             return seg;
           });
-        });
-
-        const memberBreakdown = computed(() => {
-          const map = {};
-          filteredTransactions.value.filter(t => t.type === 'expense').forEach(t => {
-            map[t.member] = (map[t.member] || 0) + t.amount;
-          });
-          return Object.entries(map).map(([name, spent]) => ({ name, spent })).sort((a, b) => b.spent - a.spent);
         });
 
         const smartAlerts = computed(() => {
@@ -1139,7 +988,7 @@
         const openEntryModal = () => {
           const defaultCat = expenseCategories.value[0]?.name || 'Khác';
           entryModal.value = {
-            open: true, type: 'expense', wallet: activeWallet.value,
+            open: true, type: 'expense',
             rawAmount: '', category: defaultCat, note: ''
           };
         };
@@ -1159,11 +1008,9 @@
           const newTx = {
             id: 'tx_' + Date.now(),
             type: entryModal.value.type,
-            wallet: entryModal.value.wallet,
             amount: parsedEntryAmount.value,
             category: entryModal.value.category,
             note: entryModal.value.note.trim(),
-            member: currentMember.value,
             date: new Date().toISOString().slice(0, 10)
           };
           transactions.value.unshift(newTx);
@@ -1177,11 +1024,9 @@
           const newTx = {
             id: 'tx_' + Date.now(),
             type: txType,
-            wallet: activeWallet.value,
             amount: Number(preset.amount || 0),
             category: preset.category,
             note: preset.label,
-            member: currentMember.value,
             date: new Date().toISOString().slice(0, 10)
           };
           transactions.value.unshift(newTx);
@@ -1393,11 +1238,9 @@
           transactions.value.unshift({
             id: 'tx_' + Date.now(),
             type: item.type,
-            wallet: 'shared',
             amount: actual,
             category: item.type === 'income' ? (incomeCategories.value[0]?.name || 'Lương') : (expenseCategories.value[1]?.name || 'Hóa đơn'),
             note: `[Định kỳ] ${item.name}`,
-            member: currentMember.value,
             date: new Date().toISOString().slice(0, 10),
             isFixedConfirmed: true
           });
@@ -1406,13 +1249,12 @@
           showToast(`Đã chốt ${item.name}: ${formatVND(actual)}`);
         };
 
+        // Export & Backup
         const exportCSV = () => {
-          const header = ['Ngày', 'Ví', 'Loại', 'Thành viên', 'Phân loại', 'Số tiền (VNĐ)', 'Ghi chú'];
+          const header = ['Ngày', 'Loại', 'Phân loại', 'Số tiền (VNĐ)', 'Ghi chú'];
           const rows = transactions.value.map(t => [
             t.date,
-            t.wallet === 'shared' ? 'Quỹ Chung' : 'Ví Riêng',
             t.type === 'income' ? 'Thu' : 'Chi',
-            t.member,
             t.category,
             t.amount,
             `"${(t.note || '').replace(/"/g, '""')}"`
@@ -1422,9 +1264,52 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `so-gia-dinh-${currentMonthKey}.csv`;
+          a.download = `so-thu-chi-ca-nhan-${currentMonthKey}.csv`;
           a.click();
           URL.revokeObjectURL(url);
+        };
+
+        const exportBackupJSON = () => {
+          const payload = {
+            monthlySavingsGoal: monthlySavingsGoal.value,
+            expenseCategories: expenseCategories.value,
+            incomeCategories: incomeCategories.value,
+            quickPresets: quickPresets.value,
+            fixedItems: fixedItems.value,
+            transactions: transactions.value,
+            exportedAt: new Date().toISOString()
+          };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `backup-so-thu-chi-${currentMonthKey}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Đã tải xuống file sao lưu dữ liệu');
+        };
+
+        const importBackupJSON = (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              if (Array.isArray(data.transactions)) transactions.value = data.transactions;
+              if (Array.isArray(data.fixedItems)) fixedItems.value = data.fixedItems;
+              if (data.monthlySavingsGoal !== undefined) monthlySavingsGoal.value = Number(data.monthlySavingsGoal);
+              if (Array.isArray(data.expenseCategories) && data.expenseCategories.length) expenseCategories.value = data.expenseCategories;
+              if (Array.isArray(data.incomeCategories) && data.incomeCategories.length) incomeCategories.value = data.incomeCategories;
+              if (Array.isArray(data.quickPresets)) quickPresets.value = data.quickPresets;
+              saveAllData();
+              showToast('Đã khôi phục dữ liệu từ file sao lưu');
+            } catch {
+              showToast('File sao lưu không hợp lệ');
+            }
+          };
+          reader.readAsText(file);
+          event.target.value = '';
         };
 
         const resetDemoData = () => {
@@ -1465,21 +1350,21 @@
         };
 
         return {
-          activeTab, activeWallet, currentMember, familyIdInput, syncStatus,
-          currentMonthLabel, todayDay, remainingDays,
-          transactions, filteredTransactions, fixedItems, sortedFixedItems,
+          activeTab, currentMonthLabel, todayDay, remainingDays,
+          transactions, fixedItems, sortedFixedItems,
           monthlySavingsGoal, expenseCategories, incomeCategories, quickPresets,
           emojiPalette, colorPalette, toast,
           entryModal, fixedModal, confirmFixedModal, presetModal, categoryModal,
-          realAvailableBalance, safeToSpendDaily, totalVariableExpense, totalFixedExpense, totalMonthExpenseAll,
+          totalFixedIncome, totalVariableIncome, totalFixedExpense, totalMonthExpenseAll,
+          realAvailableBalance, safeToSpendDaily,
           activeCategories, currentManagedCategories, parsedEntryAmount, smartAmountSuggestions,
-          budgetProgress, categoryBreakdown, donutSegments, memberBreakdown, smartAlerts,
+          budgetProgress, categoryBreakdown, donutSegments, smartAlerts,
           openEntryModal, switchEntryType, addDenomination, submitEntry, logQuickPreset, undoLastQuickLog, deleteTransaction,
           openPresetManager, resetPresetForm, syncPresetDefaultCategory, editPreset, savePreset, deletePreset,
           openCategoryManager, resetCategoryForm, editCategory, saveCategory, deleteCategory,
           openFixedModal, saveFixedItem, deleteFixedItem, openConfirmFixed, confirmFixedNow,
-          isFixedConfirmedThisMonth, hasFixedOnDay, applyFamilyId, saveLocalMeta, saveAllData,
-          exportCSV, resetDemoData, clearAllData,
+          isFixedConfirmedThisMonth, hasFixedOnDay, saveAllData,
+          exportCSV, exportBackupJSON, importBackupJSON, resetDemoData, clearAllData,
           formatVND, formatShortVND, formatDateShort, getCategoryIcon
         };
       }
