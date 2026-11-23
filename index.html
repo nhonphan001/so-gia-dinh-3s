@@ -154,9 +154,9 @@
             Chưa có giao dịch nào. Bấm nút <b>+</b> ở giữa để ghi chép trong 3 giây!
           </div>
           <div v-else class="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 shadow-sm">
-            <div v-for="tx in transactions.slice(0, 15)" :key="tx.id"
+            <div v-for="tx in visibleTransactions" :key="tx.id"
               class="p-3 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3 min-w-0">
+              <div @click="editTransaction(tx)" class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer active:opacity-70">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
                   :class="tx.type === 'income' ? 'bg-emerald-50' : 'bg-slate-100'">
                   {{ getCategoryIcon(tx.category) }}
@@ -174,8 +174,17 @@
                 <div class="text-sm font-extrabold" :class="tx.type === 'income' ? 'text-emerald-600' : 'text-slate-800'">
                   {{ tx.type === 'income' ? '+' : '-' }}{{ formatVND(tx.amount) }}
                 </div>
-                <button @click="deleteTransaction(tx.id)" class="text-[10px] text-slate-400 hover:text-rose-500">Xóa</button>
+                <div class="flex items-center justify-end gap-2 mt-0.5">
+                  <button @click="editTransaction(tx)" class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700">Sửa</button>
+                  <span class="text-slate-200">|</span>
+                  <button @click="deleteTransaction(tx.id)" class="text-[11px] text-slate-400 hover:text-rose-500">Xóa</button>
+                </div>
               </div>
+            </div>
+            <div v-if="transactions.length > 15" class="p-2.5 text-center">
+              <button @click="showAllTransactions = !showAllTransactions" class="text-xs font-bold text-emerald-600">
+                {{ showAllTransactions ? 'Thu gọn bớt' : `Xem tất cả (${transactions.length} giao dịch)` }}
+              </button>
             </div>
           </div>
         </div>
@@ -248,6 +257,7 @@
               <span v-else class="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 ✓ Đã chốt
               </span>
+              <button @click="editFixedItem(item)" class="px-2 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-emerald-700 text-xs font-bold">Sửa</button>
               <button @click="deleteFixedItem(item.id)" class="p-1.5 text-slate-400 hover:text-rose-500 text-xs">✕</button>
             </div>
           </div>
@@ -431,13 +441,16 @@
     <div v-if="entryModal.open" class="fixed inset-0 bg-slate-900/50 z-50 flex items-end sm:items-center justify-center">
       <div class="bg-white w-full max-w-[430px] rounded-t-3xl sm:rounded-3xl p-4 space-y-3.5 max-h-[92dvh] overflow-y-auto">
         <div class="flex items-center justify-between">
-          <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
-            <button @click="switchEntryType('expense')"
-              :class="entryModal.type === 'expense' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-600'"
-              class="px-4 py-1.5 rounded-lg">Khoản Chi</button>
-            <button @click="switchEntryType('income')"
-              :class="entryModal.type === 'income' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'"
-              class="px-4 py-1.5 rounded-lg">Khoản Thu</button>
+          <div class="flex items-center gap-2">
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
+              <button @click="switchEntryType('expense')"
+                :class="entryModal.type === 'expense' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-600'"
+                class="px-3.5 py-1.5 rounded-lg">Khoản Chi</button>
+              <button @click="switchEntryType('income')"
+                :class="entryModal.type === 'income' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'"
+                class="px-3.5 py-1.5 rounded-lg">Khoản Thu</button>
+            </div>
+            <span v-if="entryModal.editingId" class="text-[11px] font-extrabold text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">✏️ Đang sửa</span>
           </div>
           <button @click="entryModal.open = false" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold">✕</button>
         </div>
@@ -489,15 +502,19 @@
           </div>
         </div>
 
-        <!-- Note -->
-        <input v-model="entryModal.note" type="text" placeholder="Ghi chú nhanh (không bắt buộc)..."
-          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500" />
+        <!-- Date & Note -->
+        <div class="grid grid-cols-5 gap-2">
+          <input v-model="entryModal.date" type="date"
+            class="col-span-2 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-500" />
+          <input v-model="entryModal.note" type="text" placeholder="Ghi chú nhanh..."
+            class="col-span-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500" />
+        </div>
 
         <!-- Save Button -->
         <button @click="submitEntry" :disabled="parsedEntryAmount <= 0"
           class="w-full py-3.5 rounded-2xl text-white font-extrabold text-sm shadow-lg active:scale-[0.98] transition-all disabled:opacity-40"
           :class="entryModal.type === 'income' ? 'bg-emerald-600' : 'bg-slate-900'">
-          Lưu {{ entryModal.type === 'income' ? 'khoản thu' : 'khoản chi' }} {{ parsedEntryAmount > 0 ? formatVND(parsedEntryAmount) : '' }}
+          {{ entryModal.editingId ? 'Cập nhật' : 'Lưu' }} {{ entryModal.type === 'income' ? 'khoản thu' : 'khoản chi' }} {{ parsedEntryAmount > 0 ? formatVND(parsedEntryAmount) : '' }}
         </button>
       </div>
     </div>
@@ -506,7 +523,7 @@
     <div v-if="fixedModal.open" class="fixed inset-0 bg-slate-900/50 z-50 flex items-end sm:items-center justify-center">
       <div class="bg-white w-full max-w-[430px] rounded-t-3xl sm:rounded-3xl p-4 space-y-3">
         <div class="flex items-center justify-between">
-          <h3 class="font-extrabold text-slate-800">Thêm Thu / Chi cố định</h3>
+          <h3 class="font-extrabold text-slate-800">{{ fixedModal.editingId ? '✏️ Sửa Thu / Chi cố định' : 'Thêm Thu / Chi cố định' }}</h3>
           <button @click="fixedModal.open = false" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold">✕</button>
         </div>
         <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
@@ -532,7 +549,7 @@
           Số tiền thay đổi mỗi tháng (như hoa hồng, hóa đơn điện/nước)
         </label>
         <button @click="saveFixedItem" class="w-full py-3 rounded-2xl bg-emerald-600 text-white font-extrabold text-sm">
-          Lưu lịch định kỳ
+          {{ fixedModal.editingId ? 'Cập nhật lịch định kỳ' : 'Lưu lịch định kỳ' }}
         </button>
       </div>
     </div>
@@ -855,13 +872,18 @@
         const toast = ref({ visible: false, message: '', undoId: null });
         let toastTimer = null;
 
+        const showAllTransactions = ref(false);
+        const visibleTransactions = computed(() =>
+          showAllTransactions.value ? transactions.value : transactions.value.slice(0, 15)
+        );
+
         const entryModal = ref({
-          open: false, type: 'expense',
-          rawAmount: '', category: 'Ăn uống', note: ''
+          open: false, editingId: null, type: 'expense',
+          rawAmount: '', category: 'Ăn uống', note: '', date: ''
         });
 
         const fixedModal = ref({
-          open: false, type: 'expense', name: '', amount: 1000000, dayOfMonth: 10, isVariable: false
+          open: false, editingId: null, type: 'expense', name: '', amount: 1000000, dayOfMonth: 10, isVariable: false
         });
 
         const confirmFixedModal = ref({
@@ -1125,15 +1147,30 @@
         const openEntryModal = () => {
           const defaultCat = expenseCategories.value[0]?.name || 'Khác';
           entryModal.value = {
-            open: true, type: 'expense',
-            rawAmount: '', category: defaultCat, note: ''
+            open: true, editingId: null, type: 'expense',
+            rawAmount: '', category: defaultCat, note: '',
+            date: new Date().toISOString().slice(0, 10)
+          };
+        };
+
+        const editTransaction = (tx) => {
+          entryModal.value = {
+            open: true,
+            editingId: tx.id,
+            type: tx.type || 'expense',
+            rawAmount: String(tx.amount || ''),
+            category: tx.category || 'Khác',
+            note: tx.note || '',
+            date: tx.date || new Date().toISOString().slice(0, 10)
           };
         };
 
         const switchEntryType = (type) => {
           entryModal.value.type = type;
           const list = type === 'income' ? incomeCategories.value : expenseCategories.value;
-          entryModal.value.category = list[0]?.name || 'Khác';
+          if (!list.some(c => c.name === entryModal.value.category)) {
+            entryModal.value.category = list[0]?.name || 'Khác';
+          }
         };
 
         const addDenomination = (val) => {
@@ -1142,18 +1179,39 @@
 
         const submitEntry = () => {
           if (parsedEntryAmount.value <= 0) return;
-          const newTx = {
-            id: 'tx_' + Date.now(),
-            type: entryModal.value.type,
-            amount: parsedEntryAmount.value,
-            category: entryModal.value.category,
-            note: entryModal.value.note.trim(),
-            date: new Date().toISOString().slice(0, 10)
-          };
-          transactions.value.unshift(newTx);
-          saveAllData();
-          entryModal.value.open = false;
-          showToast(`Đã lưu ${newTx.type === 'income' ? '+' : '-'}${formatVND(newTx.amount)}`);
+          const chosenDate = entryModal.value.date || new Date().toISOString().slice(0, 10);
+          if (entryModal.value.editingId) {
+            const idx = transactions.value.findIndex(t => t.id === entryModal.value.editingId);
+            if (idx !== -1) {
+              const oldTx = transactions.value[idx];
+              transactions.value[idx] = {
+                ...oldTx,
+                type: entryModal.value.type,
+                amount: parsedEntryAmount.value,
+                category: entryModal.value.category,
+                note: entryModal.value.note.trim(),
+                date: chosenDate
+              };
+              transactions.value.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : (b.id > a.id ? 1 : -1)));
+            }
+            saveAllData();
+            entryModal.value.open = false;
+            showToast(`Đã cập nhật ${entryModal.value.type === 'income' ? '+' : '-'}${formatVND(parsedEntryAmount.value)}`);
+          } else {
+            const newTx = {
+              id: 'tx_' + Date.now(),
+              type: entryModal.value.type,
+              amount: parsedEntryAmount.value,
+              category: entryModal.value.category,
+              note: entryModal.value.note.trim(),
+              date: chosenDate
+            };
+            transactions.value.unshift(newTx);
+            transactions.value.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : (b.id > a.id ? 1 : -1)));
+            saveAllData();
+            entryModal.value.open = false;
+            showToast(`Đã lưu ${newTx.type === 'income' ? '+' : '-'}${formatVND(newTx.amount)}`);
+          }
         };
 
         const logQuickPreset = (preset) => {
@@ -1336,23 +1394,53 @@
 
         // Fixed Schedule Actions
         const openFixedModal = () => {
-          fixedModal.value = { open: true, type: 'expense', name: '', amount: 1000000, dayOfMonth: todayDay, isVariable: false };
+          fixedModal.value = { open: true, editingId: null, type: 'expense', name: '', amount: 1000000, dayOfMonth: todayDay, isVariable: false };
+        };
+
+        const editFixedItem = (item) => {
+          fixedModal.value = {
+            open: true,
+            editingId: item.id,
+            type: item.type || 'expense',
+            name: item.name || '',
+            amount: Number(item.amount || 0),
+            dayOfMonth: Number(item.dayOfMonth || 1),
+            isVariable: Boolean(item.isVariable)
+          };
         };
 
         const saveFixedItem = () => {
           if (!fixedModal.value.name.trim() || fixedModal.value.amount <= 0) return;
-          fixedItems.value.push({
-            id: 'fx_' + Date.now(),
-            type: fixedModal.value.type,
-            name: fixedModal.value.name.trim(),
-            amount: Number(fixedModal.value.amount),
-            dayOfMonth: Math.min(31, Math.max(1, Number(fixedModal.value.dayOfMonth || 1))),
-            isVariable: fixedModal.value.isVariable,
-            confirmedMonths: []
-          });
-          saveAllData();
-          fixedModal.value.open = false;
-          showToast('Đã thêm lịch thu chi định kỳ');
+          const dayVal = Math.min(31, Math.max(1, Number(fixedModal.value.dayOfMonth || 1)));
+          if (fixedModal.value.editingId) {
+            const idx = fixedItems.value.findIndex(f => f.id === fixedModal.value.editingId);
+            if (idx !== -1) {
+              fixedItems.value[idx] = {
+                ...fixedItems.value[idx],
+                type: fixedModal.value.type,
+                name: fixedModal.value.name.trim(),
+                amount: Number(fixedModal.value.amount),
+                dayOfMonth: dayVal,
+                isVariable: fixedModal.value.isVariable
+              };
+            }
+            saveAllData();
+            fixedModal.value.open = false;
+            showToast('Đã cập nhật lịch thu chi định kỳ');
+          } else {
+            fixedItems.value.push({
+              id: 'fx_' + Date.now(),
+              type: fixedModal.value.type,
+              name: fixedModal.value.name.trim(),
+              amount: Number(fixedModal.value.amount),
+              dayOfMonth: dayVal,
+              isVariable: fixedModal.value.isVariable,
+              confirmedMonths: []
+            });
+            saveAllData();
+            fixedModal.value.open = false;
+            showToast('Đã thêm lịch thu chi định kỳ');
+          }
         };
 
         const deleteFixedItem = (id) => {
@@ -1497,10 +1585,10 @@
           realAvailableBalance, safeToSpendDaily,
           activeCategories, currentManagedCategories, parsedEntryAmount, smartAmountSuggestions,
           budgetProgress, categoryBreakdown, donutSegments, smartAlerts,
-          openEntryModal, switchEntryType, addDenomination, submitEntry, logQuickPreset, undoLastQuickLog, deleteTransaction,
+          showAllTransactions, visibleTransactions, openEntryModal, editTransaction, switchEntryType, addDenomination, submitEntry, logQuickPreset, undoLastQuickLog, deleteTransaction,
           openPresetManager, resetPresetForm, syncPresetDefaultCategory, editPreset, savePreset, deletePreset,
           openCategoryManager, resetCategoryForm, editCategory, saveCategory, deleteCategory,
-          openFixedModal, saveFixedItem, deleteFixedItem, openConfirmFixed, confirmFixedNow,
+          openFixedModal, editFixedItem, saveFixedItem, deleteFixedItem, openConfirmFixed, confirmFixedNow,
           isFixedConfirmedThisMonth, hasFixedOnDay, saveAllData,
           exportCSV, exportBackupJSON, importBackupJSON, resetDemoData, clearAllData,
           formatVND, formatShortVND, formatDateShort, getCategoryIcon
